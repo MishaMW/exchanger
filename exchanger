@@ -1,0 +1,41 @@
+#!/usr/bin/php -c/etc/php.ini
+<?php
+
+/**
+ * Exchanger
+ *
+ **/
+
+require 'config.php';
+
+chdir(DAEMON_ROOT);
+
+if (PHP_SAPI !== 'cli') {
+	exit;
+}
+
+if (DAEMON_FORK && 0 !== pcntl_fork()) {
+	exit;
+}
+
+Main::log(E_NOTICE, DAEMON_NAME . ' started at ' . date(DATE_RFC822));
+
+declare(ticks = 1);
+
+Main::registerSignal();
+
+set_error_handler("Main::handleError");
+
+if (DAEMON_FORK) {
+
+	Main::registerEnv();
+
+	ini_set("display_errors", 0);
+}
+
+Main::loop();
+
+unlink(DAEMON_PID);
+
+Main::log(E_NOTICE, DAEMON_NAME . ' shut down normally at ' . date(DATE_RFC822));
+
